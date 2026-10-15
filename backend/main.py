@@ -1,13 +1,18 @@
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from predictor import DogBreedPredictor
 
 MAX_BYTES = 10 * 1024 * 1024  # 10 MB
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DIST = os.path.join(BASE, "frontend", "dist")
 
 state = {}
 
@@ -23,12 +28,22 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="AI-Powered Dog Breed Detection", lifespan=lifespan)
 
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        *[
+            origin.strip()
+            for origin in os.getenv("CORS_ORIGINS", "").split(",")
+            if origin.strip()
+        ],
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 @app.get("/health")
@@ -58,3 +73,8 @@ async def predict(file: UploadFile = File(...)):
         )
 
     return state["predictor"].predict(data)
+
+
+# Serve the built website (only if it has been built). Keep this last.
+if os.path.isdir(DIST):
+    app.mount("/", StaticFiles(directory=DIST, html=True), name="site")
