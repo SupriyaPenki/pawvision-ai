@@ -1,0 +1,12 @@
+venv/
+node_modules/
+__pycache__/
+*.pyc
+frontend/dist/
+.env
+Thumbs.db
+.DS_Store
+
+# large or regenerable files
+tests/large.jpg
+ml/models/dog_breed_model_40/features.npz

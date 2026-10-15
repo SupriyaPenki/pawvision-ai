@@ -1,0 +1,10 @@
+scikit-learn==1.6.1
+fastapi
+uvicorn[standard]
+python-multipart
+pillow
+numpy
+pandas
+joblib
+torch
+torchvision
